@@ -9,8 +9,18 @@ print(empleado.mostrar_datos())
 
 from dominio.departamento import Departamento # type: ignore
 
-departamento = Departamento(
-    nombre = "Recursos Humanos"
-)
+desarrollo = Departamento("Dep desarrollo")
 
-print(departamento.mostrar_datos())
+print(desarrollo.mostrar_datos())
+
+desarrollo.agregar_empleado(empleado)
+
+# print(desarrollo.cantidad_empleados())
+#for empleado in desarrollo.empleados:
+    #print(empleado.mostrar_datos())
+
+from dominio.proyecto import Proyecto 
+
+titulo = Proyecto("Nuevo edificio")
+print(titulo.mostrar_datos())
+
