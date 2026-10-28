@@ -1,0 +1,7 @@
+mysql-connector-python
+python-dotenv
+bandit==1.9.4
+bcrypt==5.0.0
+mysql-connector-python==26.7.0
+PyMySQL==1.2.3
+python-dotenv==1.2.3

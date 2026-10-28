@@ -1,20 +1,43 @@
 from dominio.empleado import Empleado
+from typing import Optional
+
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from dominio.empleado import Empleado
+
 
 class Departamento:
-    def __init__(self, nombre: str):
+    """Clase de dominio para representar un Departamento."""
+
+    def __init__(
+        self,
+        nombre: str,
+        descripcion: str,
+        gerente: Optional['Empleado'] = None,
+        id: Optional[int] = None
+    ):
+        self.id: Optional[int] = id
+        self.nombre: str = nombre
+        self.descripcion: str = descripcion
+        self.gerente: Optional['Empleado'] = gerente
+
+    def validar(self) -> None:
+        if not self.nombre or not self.nombre.strip():
+            raise ValueError("El nombre del departamento no puede estar vacío.")
+        if len(self.nombre) > 100:
+            raise ValueError("El nombre del departamento no puede superar los 100 caracteres.")
+        if self.descripcion and len(self.descripcion) > 500:
+            raise ValueError("La descripción del departamento no puede superar los 500 caracteres.")
+
+    def actualizar_datos(self, nombre: str, descripcion: str) -> None:
         self.nombre = nombre
-        self._empleados: list[Empleado] = []
-    
-    def agregar_empleado(self,empleado: Empleado) -> bool:
-        if empleado in self._empleados:
-            return False
+        self.descripcion = descripcion
+        self.validar()
 
-        self._empleados.append(empleado)
-    
-    def mostrar_datos(self) -> str:
-        return f"{self.nombre}"
-    
+    def asignar_gerente(self, gerente: 'Empleado') -> None:
+        self.gerente = gerente
 
-
-
-
+    def __str__(self) -> str:
+        gerente_info = self.gerente.nombre if self.gerente else "Sin gerente"
+        return f"Departamento(id={self.id}, nombre='{self.nombre}', gerente='{gerente_info}')"

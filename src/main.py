@@ -1,26 +1,23 @@
-from dominio.empleado import Empleado # type: ignore
+from menus.menu import menu_principal
+from menus.menu_usuario import solicitar_login, menu_privado
+from persistencia.crear_bd import crear_base_y_tablas
 
-empleado = Empleado(
-    nombre = "Ana Torres",
-    correo = "ana.torres@ecotech.cl"
-)
+def main():
+    crear_base_y_tablas()
+    while True:
+        usuario_actual = solicitar_login()
+        if usuario_actual is None:
+            if input("Enter para reintentar o 0 para salir: ") == "0":
+                return
+            continue
+        opcion = menu_privado(usuario_actual)
+        usuario_actual = None # Terminar el acceso de esta sesión.
+        if opcion == "0":
+            return
+        print("Sesión cerrada. Ingrese nuevamente.")
 
-print(empleado.mostrar_datos())
 
-from dominio.departamento import Departamento # type: ignore
+if __name__ == "__main__":
+    main()
 
-desarrollo = Departamento("Dep desarrollo")
-
-print(desarrollo.mostrar_datos())
-
-desarrollo.agregar_empleado(empleado)
-
-# print(desarrollo.cantidad_empleados())
-#for empleado in desarrollo.empleados:
-    #print(empleado.mostrar_datos())
-
-from dominio.proyecto import Proyecto 
-
-titulo = Proyecto("Nuevo edificio")
-print(titulo.mostrar_datos())
-
+    #menu_principal()

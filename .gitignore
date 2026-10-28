@@ -1,12 +1,12 @@
-# Entorno virtual
+# Entorno virtual del proyecto
 .venv/
 
-# Variables sensibles
-.env
-
-# Configuración de Visual Studio Code
+# Configuración del editor de código
 .vscode/
 
-# Archivos temporales y caché de Python
+# Archivos con credenciales y variables de entorno secretas
+.env
+
 __pycache__/
 *.pyc
+.env
