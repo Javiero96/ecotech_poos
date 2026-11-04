@@ -4,6 +4,7 @@ from entradas import pedir_dato
 from servicios.autenticacion import registrar_usuario
 from dominio.usuario import Usuario
 from servicios.autenticacion import autenticar
+from main_prueba import mostrar_indicador
 
 def solicitar_registro():
     try:

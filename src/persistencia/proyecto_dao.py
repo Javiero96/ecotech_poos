@@ -72,3 +72,24 @@ class ProyectoDAO:
         exito = cursor.rowcount > 0
         conexion.close()
         return exito
+
+    @staticmethod
+    def buscar_por_nombre(nombre: str):
+        conexion = abrir_conexion()
+        cursor = conexion.cursor()
+        sql = "SELECT id_proyecto, nombre, descripcion, fecha_inicio, fecha_fin, estado FROM proyecto WHERE nombre = %s"
+        cursor.execute(sql, (nombre,))
+        fila = cursor.fetchone()
+        conexion.close()
+
+        if not fila:
+            return None
+        
+        return Proyecto(
+            id=fila[0], 
+            nombre=fila[1], 
+            descripcion=fila[2], 
+            fecha_inicio=fila[3], 
+            fecha_fin=fila[4], 
+            estado=fila[5]
+        )

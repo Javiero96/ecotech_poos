@@ -1,4 +1,4 @@
-from persistencia.conexion import abrir_conexion, marcador_sql
+from persistencia.conexion import abrir_conexion
 from dominio.departamento import Departamento
 from persistencia.empleado_dao import EmpleadoDAO
 
@@ -65,3 +65,18 @@ class DepartamentoDAO:
         exito = cursor.rowcount > 0
         conexion.close()
         return exito
+
+    @staticmethod
+    def buscar_por_nombre(nombre: str):
+        conexion = abrir_conexion()
+        cursor = conexion.cursor()
+        sql = "SELECT id_departamento, nombre, descripcion, id_gerente FROM departamento WHERE nombre = %s"
+        cursor.execute(sql, (nombre,))
+        fila = cursor.fetchone()
+        conexion.close()
+
+        if not fila:
+            return None
+    
+        # Retornamos el objeto sin el gerente para evitar dependencias circulares durante la semilla
+        return Departamento(id=fila[0], nombre=fila[1], descripcion=fila[2])

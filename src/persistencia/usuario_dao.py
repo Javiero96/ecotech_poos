@@ -47,29 +47,6 @@ class UsuarioDAO:
         )
 
     @staticmethod
-    def buscar_por_nombre(nombre_usuario: str):
-        """Oheka usuario héra rupive (iporãva login-pe guarã)."""
-        conexion = abrir_conexion()
-        cursor = conexion.cursor()
-        sql = """
-            SELECT id_usuario, nombre_usuario, password_hash, id_empleado
-            FROM usuario WHERE nombre_usuario = %s
-        """
-        cursor.execute(sql, (nombre_usuario.strip().lower(),))
-        fila = cursor.fetchone()
-        conexion.close()
-
-        if not fila:
-            return None
-
-        return Usuario(
-            id=fila[0],
-            nombre_usuario=fila[1],
-            password_hash=fila[2],
-            empleado_id=fila[3],
-        )
-
-    @staticmethod
     def listar():
         conexion = abrir_conexion()
         cursor = conexion.cursor()
@@ -119,3 +96,22 @@ class UsuarioDAO:
         exito = cursor.rowcount > 0
         conexion.close()
         return exito
+
+    @staticmethod
+    def buscar_por_nombre(nombre_usuario: str):
+        conexion = abrir_conexion()
+        cursor = conexion.cursor()
+        sql = "SELECT id_usuario, nombre_usuario, password_hash, id_empleado FROM usuario WHERE nombre_usuario = %s"
+        cursor.execute(sql, (nombre_usuario.strip().lower(),))
+        fila = cursor.fetchone()
+        conexion.close()
+
+        if not fila:
+            return None
+
+        return Usuario(
+            id=fila[0],
+            nombre_usuario=fila[1],
+            password_hash=fila[2],
+            empleado_id=fila[3],
+        )

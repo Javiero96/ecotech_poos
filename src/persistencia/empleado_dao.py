@@ -62,3 +62,20 @@ class EmpleadoDAO:
         return exito
 
 
+    @staticmethod
+    def buscar_por_correo(correo: str):
+        conexion = abrir_conexion()
+        cursor = conexion.cursor()
+        sql = "SELECT id_empleado, nombre, correo, id_departamento FROM empleado WHERE correo = %s"
+        cursor.execute(sql, (correo,))
+        fila = cursor.fetchone()
+        conexion.close()
+
+        if not fila:
+            return None
+    
+        # Creamos un departamento base para mantener la estructura del objeto Empleado
+        depto = Departamento(id=fila[3], nombre="", descripcion="") if fila[3] else None
+        return Empleado(id=fila[0], nombre=fila[1], correo=fila[2], departamento=depto)
+
+
