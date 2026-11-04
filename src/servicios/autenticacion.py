@@ -40,5 +40,5 @@ def autenticar(nombre, clave):
         print(f"Contraseña incorrecta para el usuario: {nombre}")
         return None
     return {"id": cuenta.id, "empleado_id": cuenta.empleado_id,
-"nombre_usuario": cuenta.nombre_usuario}
+    "nombre_usuario": cuenta.nombre_usuario, "rol": cuenta.rol}
 

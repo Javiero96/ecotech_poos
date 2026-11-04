@@ -81,6 +81,9 @@ def crear_base_y_tablas():
                     REFERENCES empleado(id_empleado)
                     ON DELETE CASCADE
                     ON UPDATE CASCADE
+                rol TEXT NOT NULL DEFAULT 'empleado'
+                CHECK (rol IN ('admin', 'empleado'))
+
             ) ENGINE=InnoDB
         """)
 

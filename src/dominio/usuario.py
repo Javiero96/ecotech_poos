@@ -32,3 +32,13 @@ class Usuario:
                 f"Use al menos {cls.MIN_CLAVE} caracteres."
             )
         return clave # Sin strip, lower ni truncado.
+    
+    ROLES = ("admin", "empleado")
+    @classmethod
+    def validar_rol(cls, rol):
+        if not isinstance(rol, str) or rol not in cls.ROLES:
+            raise ValueError("Rol no permitido.")
+        return rol
+    # Añadir rol="empleado" al final de los parámetros de __init__.
+    # Dentro de __init__:
+    # self.rol = self.validar_rol(rol)
