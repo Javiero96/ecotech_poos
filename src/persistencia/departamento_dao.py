@@ -1,4 +1,4 @@
-from persistencia.conexion import abrir_conexion
+from persistencia.conexion import abrir_conexion, marcador_sql
 from dominio.departamento import Departamento
 from persistencia.empleado_dao import EmpleadoDAO
 
@@ -8,8 +8,9 @@ class DepartamentoDAO:
         conexion = abrir_conexion()
         cursor = conexion.cursor()
         gerente_id = departamento.gerente.id if departamento.gerente else None
-
-        sql = "INSERT INTO departamento (nombre, descripcion, id_gerente) VALUES (%s, %s, %s)"
+        
+        m = marcador_sql()
+        sql = f"INSERT INTO departamento (nombre, descripcion, id_gerente) VALUES ({m}, {m}, {m})"
         cursor.execute(sql, (departamento.nombre, departamento.descripcion, gerente_id))
         departamento.id = cursor.lastrowid
         conexion.commit()
@@ -20,7 +21,9 @@ class DepartamentoDAO:
     def buscar_por_id(id_departamento: int):
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = "SELECT id_departamento, nombre, descripcion, id_gerente FROM departamento WHERE id_departamento = %s"
+        
+        m = marcador_sql()
+        sql = f"SELECT id_departamento, nombre, descripcion, id_gerente FROM departamento WHERE id_departamento = {m}"
         cursor.execute(sql, (id_departamento,))
         fila = cursor.fetchone()
         conexion.close()
@@ -48,7 +51,9 @@ class DepartamentoDAO:
     def actualizar_datos(id_departamento: int, nombre: str, descripcion: str) -> bool:
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = "UPDATE departamento SET nombre = %s, descripcion = %s WHERE id_departamento = %s"
+        
+        m = marcador_sql()
+        sql = f"UPDATE departamento SET nombre = {m}, descripcion = {m} WHERE id_departamento = {m}"
         cursor.execute(sql, (nombre, descripcion, id_departamento))
         conexion.commit()
         exito = cursor.rowcount > 0
@@ -59,7 +64,9 @@ class DepartamentoDAO:
     def asignar_gerente(id_departamento: int, id_gerente: int) -> bool:
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = "UPDATE departamento SET id_gerente = %s WHERE id_departamento = %s"
+        
+        m = marcador_sql()
+        sql = f"UPDATE departamento SET id_gerente = {m} WHERE id_departamento = {m}"
         cursor.execute(sql, (id_gerente, id_departamento))
         conexion.commit()
         exito = cursor.rowcount > 0
@@ -70,7 +77,9 @@ class DepartamentoDAO:
     def buscar_por_nombre(nombre: str):
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = "SELECT id_departamento, nombre, descripcion, id_gerente FROM departamento WHERE nombre = %s"
+        
+        m = marcador_sql()
+        sql = f"SELECT id_departamento, nombre, descripcion, id_gerente FROM departamento WHERE nombre = {m}"
         cursor.execute(sql, (nombre,))
         fila = cursor.fetchone()
         conexion.close()

@@ -1,15 +1,16 @@
 from dominio.usuario import Usuario
-from persistencia.conexion import abrir_conexion
-
+from persistencia.conexion import abrir_conexion, marcador_sql
 
 class UsuarioDAO:
     @staticmethod
     def insertar(usuario: Usuario) -> Usuario:
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = """
-            INSERT INTO usuario (nombre_usuario, password_hash, id_empleado)
-            VALUES (%s, %s, %s)
+        
+        m = marcador_sql()
+        sql = f"""
+            INSERT INTO usuario (nombre_usuario, password_hash, id_empleado, rol)
+            VALUES ({m}, {m}, {m}, {m})
         """
         cursor.execute(
             sql,
@@ -17,6 +18,7 @@ class UsuarioDAO:
                 usuario.nombre_usuario,
                 usuario.password_hash,
                 usuario.empleado_id,
+                usuario.rol, # <-- Agregado para guardar el rol correctamente
             ),
         )
         usuario.id = cursor.lastrowid
@@ -28,9 +30,11 @@ class UsuarioDAO:
     def buscar_por_id(id_usuario: int):
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = """
-            SELECT id_usuario, nombre_usuario, password_hash, id_empleado
-            FROM usuario WHERE id_usuario = %s
+        
+        m = marcador_sql()
+        sql = f"""
+            SELECT id_usuario, nombre_usuario, password_hash, id_empleado, rol
+            FROM usuario WHERE id_usuario = {m}
         """
         cursor.execute(sql, (id_usuario,))
         fila = cursor.fetchone()
@@ -44,6 +48,7 @@ class UsuarioDAO:
             nombre_usuario=fila[1],
             password_hash=fila[2],
             empleado_id=fila[3],
+            rol=fila[4], # <-- Agregado para recuperar el rol
         )
 
     @staticmethod
@@ -51,7 +56,7 @@ class UsuarioDAO:
         conexion = abrir_conexion()
         cursor = conexion.cursor()
         sql = """
-            SELECT id_usuario, nombre_usuario, password_hash, id_empleado
+            SELECT id_usuario, nombre_usuario, password_hash, id_empleado, rol
             FROM usuario
         """
         cursor.execute(sql)
@@ -66,6 +71,7 @@ class UsuarioDAO:
                     nombre_usuario=fila[1],
                     password_hash=fila[2],
                     empleado_id=fila[3],
+                    rol=fila[4], # <-- Agregado para recuperar el rol en la lista
                 )
             )
         return usuarios
@@ -75,10 +81,12 @@ class UsuarioDAO:
         """Omoambue pe contraseña hash usuario mba'e."""
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = """
+        
+        m = marcador_sql()
+        sql = f"""
             UPDATE usuario
-            SET password_hash = %s
-            WHERE id_usuario = %s
+            SET password_hash = {m}
+            WHERE id_usuario = {m}
         """
         cursor.execute(sql, (nuevo_password_hash, id_usuario))
         conexion.commit()
@@ -90,7 +98,9 @@ class UsuarioDAO:
     def eliminar(id_usuario: int) -> bool:
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = "DELETE FROM usuario WHERE id_usuario = %s"
+        
+        m = marcador_sql()
+        sql = f"DELETE FROM usuario WHERE id_usuario = {m}"
         cursor.execute(sql, (id_usuario,))
         conexion.commit()
         exito = cursor.rowcount > 0
@@ -101,7 +111,9 @@ class UsuarioDAO:
     def buscar_por_nombre(nombre_usuario: str):
         conexion = abrir_conexion()
         cursor = conexion.cursor()
-        sql = "SELECT id_usuario, nombre_usuario, password_hash, id_empleado FROM usuario WHERE nombre_usuario = %s"
+        
+        m = marcador_sql()
+        sql = f"SELECT id_usuario, nombre_usuario, password_hash, id_empleado, rol FROM usuario WHERE nombre_usuario = {m}"
         cursor.execute(sql, (nombre_usuario.strip().lower(),))
         fila = cursor.fetchone()
         conexion.close()
@@ -114,4 +126,5 @@ class UsuarioDAO:
             nombre_usuario=fila[1],
             password_hash=fila[2],
             empleado_id=fila[3],
+            rol=fila[4], # <-- Agregado crucial para que el login reconozca si es admin o empleado
         )

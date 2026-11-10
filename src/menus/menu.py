@@ -172,92 +172,92 @@ def menu_empleados():
             print(f"\n[Error inesperado]: {e}")
             pausar()
 
+def menu_proyectos():
+    while True:
+            limpiar_pantalla()
+            print("=== GESTIÓN DE PROYECTOS ===")
+            print("1. Crear Proyecto")
+            print("2. Listar Proyectos")
+            print("3. Actualizar datos (nombre, descripción)")
+            print("4. Actualizar fechas (inicio, fin)")
+            print("5. Cambiar estado")
+            print("6. Volver")
+            opcion = input("Seleccione una opción: ")
 
-while True:
-        limpiar_pantalla()
-        print("=== GESTIÓN DE PROYECTOS ===")
-        print("1. Crear Proyecto")
-        print("2. Listar Proyectos")
-        print("3. Actualizar datos (nombre, descripción)")
-        print("4. Actualizar fechas (inicio, fin)")
-        print("5. Cambiar estado")
-        print("6. Volver")
-        opcion = input("Seleccione una opción: ")
+            try:
+                if opcion == "1":
+                    nombre = input("Nombre: ")
+                    descripcion = input("Descripción: ")
+                    f_str = input("Fecha inicio (YYYY-MM-DD): ")
+                    f_inicio = datetime.strptime(f_str, "%Y-%m-%d").date()
+                    p = Proyecto(nombre=nombre, descripcion=descripcion, fecha_inicio=f_inicio)
+                    p.validar()
+                    ProyectoDAO.insertar(p)
+                    print("\n[✓] Proyecto creado exitosamente.")
+                    pausar()
 
-        try:
-            if opcion == "1":
-                nombre = input("Nombre: ")
-                descripcion = input("Descripción: ")
-                f_str = input("Fecha inicio (YYYY-MM-DD): ")
-                f_inicio = datetime.strptime(f_str, "%Y-%m-%d").date()
-                p = Proyecto(nombre=nombre, descripcion=descripcion, fecha_inicio=f_inicio)
-                p.validar()
-                ProyectoDAO.insertar(p)
-                print("\n[✓] Proyecto creado exitosamente.")
+                elif opcion == "2":
+                    print("\n--- LISTA DE PROYECTOS ---")
+                    proyectos = ProyectoDAO.listar()
+                    if not proyectos:
+                        print("No hay proyectos registrados.")
+                    else:
+                        for p in proyectos:
+                            print(p)
+                    pausar()
+
+                elif opcion == "3":
+                    id_p = int(input("ID Proyecto: "))
+                    nombre = input("Nuevo nombre: ")
+                    descripcion = input("Nueva descripción: ")
+
+                    # Buscar primero para mantener la fecha original en el objeto de validación
+                    proy_actual = ProyectoDAO.buscar_por_id(id_p)
+                    if not proy_actual:
+                        print("\n[!] Proyecto no encontrado.")
+                    else:
+                        proy_actual.actualizar_datos(nombre, descripcion)
+                        if ProyectoDAO.actualizar_datos(id_p, nombre, descripcion):
+                            print("\n[✓] Proyecto actualizado.")
+                    pausar()
+
+                elif opcion == "4":
+                    id_p = int(input("ID Proyecto: "))
+                    f_ini_str = input("Nueva fecha inicio (YYYY-MM-DD): ")
+                    f_fin_str = input("Nueva fecha fin (YYYY-MM-DD): ")
+                    f_inicio = datetime.strptime(f_ini_str, "%Y-%m-%d").date()
+                    f_fin = datetime.strptime(f_fin_str, "%Y-%m-%d").date()
+
+                    if f_fin < f_inicio:
+                        raise ValueError("La fecha fin no puede ser anterior a la fecha de inicio.")
+
+                    if ProyectoDAO.actualizar_fechas(id_p, f_inicio, f_fin):
+                        print("\n[✓] Fechas actualizadas.")
+                    else:
+                        print("\n[!] Error al actualizar fechas.")
+                    pausar()
+
+                elif opcion == "5":
+                    id_p = int(input("ID Proyecto: "))
+                    nuevo_estado = input("Nuevo estado (pendiente/en proceso/finalizado): ")
+                    if ProyectoDAO.cambiar_estado(id_p, nuevo_estado):
+                        print("\n[✓] Estado modificado.")
+                    else:
+                        print("\n[!] Error al cambiar estado.")
+                    pausar()
+
+                elif opcion == "6":
+                    break
+
+            except ValueError as e:
+                print(f"\n[Error de validación o entrada]: {e}")
                 pausar()
-
-            elif opcion == "2":
-                print("\n--- LISTA DE PROYECTOS ---")
-                proyectos = ProyectoDAO.listar()
-                if not proyectos:
-                    print("No hay proyectos registrados.")
-                else:
-                    for p in proyectos:
-                        print(p)
+            except pymysql.err.IntegrityError as e:
+                print(f"\n[Error de BD]: {e}")
                 pausar()
-
-            elif opcion == "3":
-                id_p = int(input("ID Proyecto: "))
-                nombre = input("Nuevo nombre: ")
-                descripcion = input("Nueva descripción: ")
-
-                # Buscar primero para mantener la fecha original en el objeto de validación
-                proy_actual = ProyectoDAO.buscar_por_id(id_p)
-                if not proy_actual:
-                    print("\n[!] Proyecto no encontrado.")
-                else:
-                    proy_actual.actualizar_datos(nombre, descripcion)
-                    if ProyectoDAO.actualizar_datos(id_p, nombre, descripcion):
-                        print("\n[✓] Proyecto actualizado.")
+            except Exception as e:
+                print(f"\n[Error inesperado]: {e}")
                 pausar()
-
-            elif opcion == "4":
-                id_p = int(input("ID Proyecto: "))
-                f_ini_str = input("Nueva fecha inicio (YYYY-MM-DD): ")
-                f_fin_str = input("Nueva fecha fin (YYYY-MM-DD): ")
-                f_inicio = datetime.strptime(f_ini_str, "%Y-%m-%d").date()
-                f_fin = datetime.strptime(f_fin_str, "%Y-%m-%d").date()
-
-                if f_fin < f_inicio:
-                    raise ValueError("La fecha fin no puede ser anterior a la fecha de inicio.")
-
-                if ProyectoDAO.actualizar_fechas(id_p, f_inicio, f_fin):
-                    print("\n[✓] Fechas actualizadas.")
-                else:
-                    print("\n[!] Error al actualizar fechas.")
-                pausar()
-
-            elif opcion == "5":
-                id_p = int(input("ID Proyecto: "))
-                nuevo_estado = input("Nuevo estado (pendiente/en proceso/finalizado): ")
-                if ProyectoDAO.cambiar_estado(id_p, nuevo_estado):
-                    print("\n[✓] Estado modificado.")
-                else:
-                    print("\n[!] Error al cambiar estado.")
-                pausar()
-
-            elif opcion == "6":
-                break
-
-        except ValueError as e:
-            print(f"\n[Error de validación o entrada]: {e}")
-            pausar()
-        except pymysql.err.IntegrityError as e:
-            print(f"\n[Error de BD]: {e}")
-            pausar()
-        except Exception as e:
-            print(f"\n[Error inesperado]: {e}")
-            pausar()
 
 
 def menu_registro_tiempo():
@@ -344,9 +344,7 @@ def menu_registro_tiempo():
             pausar()
 
 
-def menu_principal():
-    
-
+def menu_admin():
     while True:
         limpiar_pantalla()
         print("==================================")

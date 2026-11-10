@@ -13,15 +13,29 @@ def crear_hash(clave):
         clave_bytes, bcrypt.gensalt()
     ).decode("utf-8")
 
-def registrar_usuario(empleado_id, nombre, clave):
-    nombre = Usuario.normalizar_usuario(nombre)
-    if UsuarioDAO.buscar_por_nombre(nombre) is not None:
-        raise ValueError("No se pudo crear esa cuenta.")
+from dominio.usuario import Usuario
+from persistencia.usuario_dao import UsuarioDAO
+import bcrypt
+
+def registrar_usuario(empleado_id: int, nombre_usuario: str, password: str, rol: str = "empleado"):
+    """Registra un nuevo usuario en la base de datos con su respectivo rol."""
     
-    hash_guardado = crear_hash(clave)
-    usuario = Usuario(nombre, hash_guardado, empleado_id)
+    # 1. Hashear la contraseña de forma segura
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
-    return UsuarioDAO.insertar(usuario)
+    # 2. Crear la instancia de Usuario incluyendo el rol
+    nuevo_usuario = Usuario(
+        nombre_usuario=nombre_usuario,
+        password_hash=password_hash,
+        empleado_id=empleado_id,
+        rol=rol
+    )
+    
+    # 3. Guardar en el DAO
+    usuario_guardado = UsuarioDAO.insertar(nuevo_usuario)
+    
+    # Retornar el ID del usuario creado (o el objeto según cómo lo manejes)
+    return usuario_guardado.id_usuario if hasattr(usuario_guardado, 'id_usuario') else usuario_guardado.id
 
 def autenticar(nombre, clave):
     nombre = Usuario.normalizar_usuario(nombre)

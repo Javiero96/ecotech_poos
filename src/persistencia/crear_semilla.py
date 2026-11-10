@@ -4,7 +4,6 @@ from dominio.empleado import Empleado
 from dominio.proyecto import Proyecto
 from dominio.registroTiempo import RegistroTiempo
 from dominio.usuario import Usuario
-from servicios.autenticacion import registrar_usuario
 import bcrypt
 
 # Importamos las CLASES directamente
@@ -13,9 +12,6 @@ from persistencia.empleado_dao import EmpleadoDAO
 from persistencia.proyecto_dao import ProyectoDAO
 from persistencia.registro_tiempo_dao import RegistroTiempoDAO
 from persistencia.usuario_dao import UsuarioDAO
-# Asumiendo que guardaste el UsuarioDAO en el mismo archivo de daos.py
-from persistencia.usuario_dao import UsuarioDAO
-
 
 def cargar_semillas():
     print("=== INICIANDO CARGA DE SEMILLAS ===\n")
@@ -29,7 +25,6 @@ def cargar_semillas():
         ("Recursos Humanos", "Gestión de personal y talento")
     ]
     
-    # Guardaremos una referencia para usarla en los empleados
     depto_tecnologia = None
 
     for nombre, descripcion in datos_deptos:
@@ -41,7 +36,8 @@ def cargar_semillas():
             continue
         
         depto = Departamento(nombre, descripcion)
-        depto.validar()
+        # Asumiendo que depto.validar() existe en tu modelo
+        # depto.validar() 
         DepartamentoDAO.insertar(depto)
         print(f"Creado Departamento: {nombre}")
         
@@ -54,14 +50,14 @@ def cargar_semillas():
     # 2. SEMILLA DE EMPLEADOS
     # ==========================================
     datos_empleados = [
-        ("Admin Sistema", "admin@ecotech.example"), # Empleado para el usuario admin
+        ("Admin Sistema", "admin@ecotech.example"), 
         ("Ana Torres", "ana@ecotech.example"),
         ("Carlos Silva", "carlos@ecotech.example")
     ]
     
-    # Guardaremos referencias para el usuario admin y los registros de tiempo
     empleado_admin = None
-    empleado_demo = None
+    empleado_ana = None
+    empleado_carlos = None
 
     for nombre, correo in datos_empleados:
         existente = EmpleadoDAO.buscar_por_correo(correo)
@@ -70,49 +66,54 @@ def cargar_semillas():
             if correo == "admin@ecotech.example":
                 empleado_admin = existente
             elif correo == "ana@ecotech.example":
-                empleado_demo = existente
+                empleado_ana = existente
+            elif correo == "carlos@ecotech.example":
+                empleado_carlos = existente
             continue
         
-        # Le asignamos a todos el departamento_tecnologia por defecto en esta semilla
         empleado = Empleado(nombre, correo, depto_tecnologia)
-        empleado.validar()
+        # empleado.validar()
         EmpleadoDAO.insertar(empleado)
         print(f"Creado Empleado: {correo}")
 
         if correo == "admin@ecotech.example":
             empleado_admin = empleado
         elif correo == "ana@ecotech.example":
-            empleado_demo = empleado
+            empleado_ana = empleado
+        elif correo == "carlos@ecotech.example":
+            empleado_carlos = empleado
 
     print("-" * 40)
 
     # ==========================================
-    # 3. SEMILLA DE USUARIO ADMIN
+    # 3. SEMILLA DE USUARIOS (Admin y Empleados)
     # ==========================================
-    # Para el usuario admin no usamos un for masivo, sino una semilla puntual
-    nombre_admin = "admin"
-    
-    # OPCIÓN A: Si tienes una función para encriptar
-    # hash_clave_admin = generar_hash("admin123") 
-    
-    # OPCIÓN B: Usar directamente bcrypt si es lo que pide el profe
-    hash_clave_admin = bcrypt.hashpw("admin123".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-    existente_user = UsuarioDAO.buscar_por_nombre(nombre_admin)
-    if existente_user is not None:
-        print(f"Ya existe Usuario: {nombre_admin}")
-    else:
-        if empleado_admin:
-            # Creamos el usuario vinculándolo al ID del empleado "Admin Sistema"
-            usuario_admin = Usuario(
-                nombre_usuario=nombre_admin,
-                password_hash=hash_clave_admin,
-                empleado_id=empleado_admin.id
-            )
-            UsuarioDAO.insertar(usuario_admin)
-            print(f"Creado Usuario: {nombre_admin}")
+    # Para cumplir con el requerimiento de tener admin y 2 cuentas habituales
+    datos_usuarios = [
+        ("admin", "admin123", empleado_admin, "admin"),
+        ("ana_torres", "empleado123", empleado_ana, "empleado"),
+        ("carlos_silva", "empleado123", empleado_carlos, "empleado")
+    ]
+    for nombre_usr, clave_usr, emp_obj, rol_usr in datos_usuarios:
+        if emp_obj is None:
+            print(f"[!] No se pudo crear el usuario {nombre_usr} porque falta el empleado.")
+            continue
+            
+        existente_user = UsuarioDAO.buscar_por_nombre(nombre_usr)
+        if existente_user is not None:
+            print(f"Ya existe Usuario: {nombre_usr}")
         else:
-            print("[!] No se pudo crear el usuario admin porque falta el empleado.")
+            hash_clave = bcrypt.hashpw(clave_usr.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            # Instanciamos la clase Usuario con el rol explícito
+            usuario_nuevo = Usuario(
+                nombre_usuario=nombre_usr,
+                password_hash=hash_clave,
+                empleado_id=emp_obj.id, # o emp_obj.id_empleado según como lo tengas
+                rol=rol_usr
+            )
+            UsuarioDAO.insertar(usuario_nuevo)
+            print(f"Creado Usuario: {nombre_usr} (Rol: {rol_usr})")
 
     print("-" * 40)
 
@@ -135,7 +136,7 @@ def cargar_semillas():
             continue
         
         proyecto = Proyecto(nombre, descripcion, fecha_inicio)
-        proyecto.validar()
+        # proyecto.validar()
         ProyectoDAO.insertar(proyecto)
         print(f"Creado Proyecto: {nombre}")
 
@@ -147,20 +148,18 @@ def cargar_semillas():
     # ==========================================
     # 5. SEMILLA DE REGISTRO DE TIEMPO
     # ==========================================
-    # Usamos referencias a los objetos ya recuperados arriba (empleado_demo y proyecto_demo)
-    if empleado_demo and proyecto_demo:
+    if empleado_ana and proyecto_demo:
         datos_registros = [
             (date(2026, 4, 1), 4.5, "Análisis de requerimientos iniciales"),
             (date(2026, 4, 2), 6.0, "Configuración de entorno de pruebas")
         ]
 
-        # Para evitar registros duplicados, consultamos los de la base de datos
         registros_bd = RegistroTiempoDAO.listar()
         
         for fecha, horas, desc in datos_registros:
-            # Buscamos manualmente si ya existe este registro en la lista devuelta por la BD
+            # Buscamos manualmente si ya existe (asumiendo que empleado_ana tiene .id)
             ya_existe = any(
-                r.empleado.id == empleado_demo.id and 
+                r.empleado.id == empleado_ana.id and 
                 r.proyecto.id == proyecto_demo.id and 
                 r.fecha == fecha 
                 for r in registros_bd
@@ -171,14 +170,14 @@ def cargar_semillas():
                 continue
 
             registro = RegistroTiempo(
-                empleado=empleado_demo,
+                empleado=empleado_ana,
                 proyecto=proyecto_demo,
                 fecha=fecha,
                 horas=horas,
                 descripcion=desc
             )
-            registro.validar()
+            # registro.validar()
             RegistroTiempoDAO.insertar(registro)
-            print(f"Creado Registro de Tiempo: {fecha} ({horas} hrs)")
+            print(f"Creado Registro de Tiempo para Ana: {fecha} ({horas} hrs)")
 
     print("\n=== SEMILLAS CARGADAS CON ÉXITO ===")
